@@ -2,13 +2,14 @@
 //  1. 枚举日志等级
 //  2. 提供将枚举的等级转换成字符串的接口
 #pragma once
+#include <string>
 
 namespace wyllog {
 class LogLevel {
 public:
     enum class Value { DEBUG = 0, INFO, WARNING, ERROR, FATAL, OFF };
 
-    static const char *toString(Value value) {
+    static const std::string toString(Value value) {
         switch (value) {
             case Value::DEBUG:
                 return "DEBUG";
