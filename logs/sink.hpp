@@ -35,13 +35,15 @@ public:
     FileSink(const std::string &pathname) : _pathname(pathname) {
         // 创建指定目录
         wyllog::file::createDirectory(wyllog::file::path(_pathname));
-        // 打开文件
-        _ofs.open(_pathname, std::ios::binary | std::ios::app);
-        assert(_ofs.is_open());
     }
 
     // 将日志消息写到指定文件
     void log(const char *data, size_t len) {
+        if (_ofs.is_open() == false) {
+            // 打开文件
+            _ofs.open(_pathname, std::ios::binary | std::ios::app);
+            assert(_ofs.is_open());
+        }
         _ofs.write(data, len);
         assert(_ofs.good());
     }
