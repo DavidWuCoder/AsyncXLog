@@ -1,6 +1,7 @@
 // 日志器模块
 //   1. 抽象出日志器基类
 //   2. 实现子类（同步 & 异步）
+//   3. 引入建造者类
 #include <atomic>
 #include <cstdarg>
 #include <mutex>
@@ -161,6 +162,61 @@ protected:
         for (auto &sink : _sinks) {
             sink->log(data, len);
         }
+    }
+};
+
+// 使用建造者模式构造日志器
+enum class LoggerType { SYNC, ASYNC };
+
+// 1. 抽象日志器建造者类（这里先决定同步还是异步）
+class LoggerBuilder {
+public:
+    LoggerBuilder()
+        : _logger_type(LoggerType::ASYNC),
+          _limit_level(LogLevel::Value::DEBUG) {}
+    void buildType(const LoggerType &logger_type) {
+        _logger_type = logger_type;
+    }
+    void buildName(const std::string logger_name) {
+        _logger_name = logger_name;
+    }
+    void buildLimitLevel(const LogLevel::Value &limit_level) {
+        _limit_level = limit_level;
+    }
+    void buildFommatter(
+        const std::string pattern = "[%d{%H:%M:%S}][%t][%c][%p][%f:%l]%T%m%n") {
+        _formatter = std::make_shared<Formatter>(pattern);
+    }
+    template <typename SinkType, typename... Args>
+    void buildSink(Args &&...args) {
+        auto sink = SinkFactory::create<SinkType>(std::forward<Args>(args)...);
+        _sinks.push_back(sink);
+    }
+    virtual Logger::ptr build() = 0;
+
+protected:
+    LoggerType _logger_type;
+    std::string _logger_name;
+    LogLevel::Value _limit_level;      // 日志输出限制等级
+    Formatter::ptr _formatter;         // 格式化
+    std::vector<LogSink::ptr> _sinks;  // 日志落地位置（可以多选）
+};
+
+// 2. 派生出具体的建造者类型（局部或全局）
+class LocalLoggerBuilder : public LoggerBuilder {
+public:
+    Logger::ptr build() override {
+        assert(!_logger_name.empty());  // 用户一定要设置日志器名称
+        if (_formatter.get() == nullptr) {
+            buildFommatter();
+        }
+        if (_sinks.empty()) {
+            buildSink<StdoutSink>();
+        }
+        if (_logger_type == LoggerType::ASYNC) {
+        }
+        return std::make_shared<SyncLogger>(_logger_name, _limit_level,
+                                            _formatter, _sinks);
     }
 };
 
