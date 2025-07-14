@@ -25,7 +25,7 @@ struct LogMsg {
     std::string _payload;          // 有效消息
 
     LogMsg(wlog::LogLevel::Value level, const std::string &logger,
-           const std::string file, size_t line, const std::string &&msg)
+           const std::string file, const size_t line, const std::string &&msg)
         : _c_time(date::now()),
           _level(level),
           _logger(logger),
