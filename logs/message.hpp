@@ -14,17 +14,17 @@
 #include "level.hpp"
 #include "util.hpp"
 
-namespace wyllog {
+namespace wlog {
 struct LogMsg {
-    time_t _c_time;                  // 当前时间
-    wyllog::LogLevel::Value _level;  // 日志等级
-    std::string _logger;             // 日志器名称
-    std::string _file;               // 文件名称
-    size_t _line;                    // 行号
-    std::thread::id _tid;            // 线程ID
-    std::string _payload;            // 有效消息
+    time_t _c_time;                // 当前时间
+    wlog::LogLevel::Value _level;  // 日志等级
+    std::string _logger;           // 日志器名称
+    std::string _file;             // 文件名称
+    size_t _line;                  // 行号
+    std::thread::id _tid;          // 线程ID
+    std::string _payload;          // 有效消息
 
-    LogMsg(wyllog::LogLevel::Value level, const std::string &logger,
+    LogMsg(wlog::LogLevel::Value level, const std::string &logger,
            const std::string file, size_t line, const std::string &&msg)
         : _c_time(date::now()),
           _level(level),
@@ -34,4 +34,4 @@ struct LogMsg {
           _tid(std::this_thread::get_id()),
           _payload(std::move(msg)) {}
 };
-}  // namespace wyllog
+}  // namespace wlog

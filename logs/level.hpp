@@ -4,7 +4,7 @@
 #pragma once
 #include <string>
 
-namespace wyllog {
+namespace wlog {
 class LogLevel {
 public:
     enum class Value { DEBUG = 0, INFO, WARNING, ERROR, FATAL, OFF };
@@ -27,4 +27,4 @@ public:
         return "UNKNOW";
     }
 };
-}  // namespace wyllog
+}  // namespace wlog

@@ -11,7 +11,7 @@
 #include "level.hpp"
 #include "message.hpp"
 
-namespace wyllog {
+namespace wlog {
 // 格式化子项的基类
 class FormatItem {
 public:
@@ -97,6 +97,7 @@ private:
 // %n 表示换行
 class Formatter {
 public:
+    using ptr = std::shared_ptr<Formatter>;
     Formatter(
         const std::string &pattern = "[%d{%H:%M:%S}][%t][%c][%p][%f:%l]%T%m%n")
         : _pattern(pattern) {
@@ -201,4 +202,4 @@ private:
     std::string _pattern;
     std::vector<FormatItem::ptr> _items;
 };
-}  // namespace wyllog
+}  // namespace wlog

@@ -11,7 +11,7 @@
 
 #include "util.hpp"
 
-namespace wyllog {
+namespace wlog {
 class LogSink {
 public:
     using ptr = std::shared_ptr<LogSink>;
@@ -34,7 +34,7 @@ public:
     // 传入文件名，构造输出流
     FileSink(const std::string &pathname) : _pathname(pathname) {
         // 创建指定目录
-        wyllog::file::createDirectory(wyllog::file::path(_pathname));
+        wlog::file::createDirectory(wlog::file::path(_pathname));
     }
 
     // 将日志消息写到指定文件
@@ -64,7 +64,7 @@ public:
           _cur_size(0),
           _name_count(0) {
         // 创建指定目录
-        wyllog::file::createDirectory(wyllog::file::path(_basename));
+        wlog::file::createDirectory(wlog::file::path(_basename));
     }
     // 将日志消息写到指定文件
     void log(const char *data, size_t len) {
@@ -119,4 +119,4 @@ public:
         return std::make_shared<Type>(std::forward<Args>(args)...);
     }
 };
-}  // namespace wyllog
+}  // namespace wlog

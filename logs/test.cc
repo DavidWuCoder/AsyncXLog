@@ -7,7 +7,7 @@
 
 enum class TimeGap { GAP_SECOND, GAP_MINUTE, GAP_HOUR, GAP_DAY };
 
-class RollSinkByTime : public wyllog::LogSink {
+class RollSinkByTime : public wlog::LogSink {
 public:
     using ptr = std::shared_ptr<RollSinkByTime>;
     // 传入文件名，和单个文件的上限，构造输出流
@@ -29,7 +29,7 @@ public:
         }
         _cur_gap = getCurGap();
         // 创建指定目录
-        wyllog::file::createDirectory(wyllog::file::path(_basename));
+        wlog::file::createDirectory(wlog::file::path(_basename));
     }
     // 将日志消息写到指定文件
     void log(const char *data, size_t len) {
@@ -39,8 +39,8 @@ public:
     }
 
     size_t getCurGap() {
-        return _gap_size == 1 ? wyllog::date::now()
-                              : wyllog::date::now() % _gap_size;
+        return _gap_size == 1 ? wlog::date::now()
+                              : wlog::date::now() % _gap_size;
     }
 
 private:
@@ -56,7 +56,7 @@ private:
 
     // 创建文件
     std::string createFilename() {
-        time_t time = wyllog::date::now();
+        time_t time = wlog::date::now();
         struct tm t;
         localtime_r(&time, &t);
         std::stringstream ss;
@@ -79,21 +79,20 @@ private:
 };
 
 int main() {
-    wyllog::LogMsg msg(wyllog::LogLevel::Value::DEBUG, "root", "main.c", 18,
-                       "一切正常");
-    wyllog::Formatter fomatter("xyzxyz%%abc[%d{%H:%M:%S}] %m%n");
+    wlog::LogMsg msg(wlog::LogLevel::Value::DEBUG, "root", "main.c", 18,
+                     "一切正常");
+    wlog::Formatter fomatter("xyzxyz%%abc[%d{%H:%M:%S}] %m%n");
     std::string str = fomatter.format(msg);
-    wyllog::LogSink::ptr std_lsp =
-        wyllog::SinkFactory::create<wyllog::StdoutSink>();
-    // wyllog::LogSink::ptr file_lsp =
-    //     wyllog::SinkFactory::create<wyllog::FileSink>("./logfile/test.log");
-    // wyllog::LogSink::ptr roll_lsp =
-    //     wyllog::SinkFactory::create<wyllog::RollSinkBySize>("./logs/roll.log",
+    wlog::LogSink::ptr std_lsp = wlog::SinkFactory::create<wlog::StdoutSink>();
+    // wlog::LogSink::ptr file_lsp =
+    //     wlog::SinkFactory::create<wlog::FileSink>("./logfile/test.log");
+    // wlog::LogSink::ptr roll_lsp =
+    //     wlog::SinkFactory::create<wlog::RollSinkBySize>("./logs/roll.log",
     //                                                         1024 * 1024);
-    wyllog::LogSink::ptr time_lsp = wyllog::SinkFactory::create<RollSinkByTime>(
+    wlog::LogSink::ptr time_lsp = wlog::SinkFactory::create<RollSinkByTime>(
         "./logs/roll.log", TimeGap::GAP_SECOND);
-    time_t start = wyllog::date::now();
-    while (wyllog::date::now() - 5 < start) {
+    time_t start = wlog::date::now();
+    while (wlog::date::now() - 5 < start) {
         time_lsp->log(str.c_str(), str.size());
     }
     // std_lsp->log(str.c_str(), str.size());

@@ -10,7 +10,7 @@
 #include <ctime>
 #include <string>
 
-namespace wyllog {
+namespace wlog {
 class date {
 public:
     static size_t now() { return (size_t)time(nullptr); }
@@ -47,4 +47,4 @@ public:
         }
     }
 };
-}  // namespace wyllog
+}  // namespace wlog
