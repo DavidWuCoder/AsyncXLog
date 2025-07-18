@@ -5,11 +5,12 @@
 #include <vector>
 
 namespace wlog {
-#define DEFAULT_BUFFER_SIZE (10 * 1024 * 1024)
-#define THRESHOLD_BUFFER_SIZE (80 * 1024 * 1024)
-#define INCREASEMENT_BUFFER_SIZE (10 * 1024 * 1024)
+#define DEFAULT_BUFFER_SIZE (1 * 1024 * 1024)
+#define THRESHOLD_BUFFER_SIZE (8 * 1024 * 1024)
+#define INCREASEMENT_BUFFER_SIZE (1 * 1024 * 1024)
 
 class Buffer {
+public:
     Buffer() : _buffer(DEFAULT_BUFFER_SIZE), _writer_idx(0), _reader_idx(0) {}
 
     // 向缓冲区写入数据
@@ -35,7 +36,7 @@ class Buffer {
 
     // 移动读指针
     void moveReader(size_t len) {
-        assert(len < readableSize());
+        assert(len <= readableSize());
         _reader_idx += len;
     }
 
@@ -60,12 +61,12 @@ class Buffer {
 private:
     // 移动写指针
     void moveWriter(size_t len) {
-        assert(len < writeableSize());
+        assert(len <= writeableSize());
         _writer_idx += len;
     }
 
     void expandSize(size_t len) {
-        if (writeableSize() < len) return;
+        if (writeableSize() >= len) return;
         if (writeableSize() < THRESHOLD_BUFFER_SIZE)
             _buffer.resize(_buffer.size() * 2);
         else {
