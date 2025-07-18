@@ -44,14 +44,18 @@ public:
 
 private:
     void threadEntry() {
-        while (_running) {
+        while (1) {
             {
                 std::unique_lock<std::mutex> lock(_mutex);
                 // 工作线程退出或者生产者缓冲区有数据唤醒线程
                 if (_looper_type == LooperType::SAFE) {
                     _cond_con.wait(lock, [&]() {
-                        return !_running || _pro_buffer.empty();
+                        return !_running || !_pro_buffer.empty();
                     });
+                }
+                // 运行标志设为否且数据处理完毕，再退出，否则会导致数据处理不完全
+                if (!_running && _pro_buffer.empty()) {
+                    break;
                 }
                 // 交换两个缓冲区
                 _con_buffer.swap(_pro_buffer);

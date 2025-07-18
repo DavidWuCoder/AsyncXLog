@@ -8,6 +8,7 @@
 
 #include "format.hpp"
 #include "level.hpp"
+#include "looper.hpp"
 #include "message.hpp"
 #include "sink.hpp"
 #include "util.hpp"
@@ -164,6 +165,32 @@ protected:
         }
     }
 };
+class AsyncLogger : public Logger {
+public:
+    AsyncLogger(const std::string &logger_name, LogLevel::Value &limit_level,
+                const Formatter::ptr &fommatter,
+                std::vector<LogSink::ptr> sinks, LooperType looper_type)
+        : Logger(logger_name, limit_level, fommatter, sinks),
+          _looper(std::make_shared<AsyncLooper>(
+              std::bind(&AsyncLogger::asyncLog, this, std::placeholders::_1),
+              looper_type)) {}
+
+protected:
+    virtual void log(const char *data, size_t len = 0) override {
+        _looper->push(data, len);
+    }
+
+    // 实际落地函数
+    void asyncLog(Buffer &buffer) {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_sinks.empty()) return;
+        for (auto &sink : _sinks) {
+            sink->log(buffer.begin(), buffer.readableSize());
+        }
+    }
+
+    AsyncLooper::ptr _looper;
+};
 
 // 使用建造者模式构造日志器
 enum class LoggerType { SYNC, ASYNC };
@@ -173,10 +200,14 @@ class LoggerBuilder {
 public:
     LoggerBuilder()
         : _logger_type(LoggerType::ASYNC),
-          _limit_level(LogLevel::Value::DEBUG) {}
+          _limit_level(LogLevel::Value::DEBUG),
+          _looper_type(LooperType::SAFE) {}
     void buildType(const LoggerType &logger_type) {
         _logger_type = logger_type;
     }
+
+    void enableUnsafeAsync() { _looper_type = LooperType::UNSAFE; }
+
     void buildName(const std::string logger_name) {
         _logger_name = logger_name;
     }
@@ -200,6 +231,7 @@ protected:
     LogLevel::Value _limit_level;      // 日志输出限制等级
     Formatter::ptr _formatter;         // 格式化
     std::vector<LogSink::ptr> _sinks;  // 日志落地位置（可以多选）
+    LooperType _looper_type;
 };
 
 // 2. 派生出具体的建造者类型（局部或全局）
@@ -214,6 +246,8 @@ public:
             buildSink<StdoutSink>();
         }
         if (_logger_type == LoggerType::ASYNC) {
+            return std::make_shared<AsyncLogger>(
+                _logger_name, _limit_level, _formatter, _sinks, _looper_type);
         }
         return std::make_shared<SyncLogger>(_logger_name, _limit_level,
                                             _formatter, _sinks);

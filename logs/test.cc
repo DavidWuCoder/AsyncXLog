@@ -42,13 +42,14 @@ int main() {
 
     std::unique_ptr<wlog::LoggerBuilder> builder =
         std::make_unique<wlog::LocalLoggerBuilder>();
-    builder->buildName("sync_logger");
+    builder->buildName("async_logger");
     builder->buildLimitLevel(wlog::LogLevel::Value::WARNING);
-    builder->buildType(wlog::LoggerType::SYNC);
-    builder->buildFommatter("%p%m%n");
+    builder->buildType(wlog::LoggerType::ASYNC);
+    builder->buildFommatter("[%c][%p]%m%n");
     builder->buildSink<wlog::StdoutSink>();
     builder->buildSink<wlog::FileSink>("./logfile/test.log");
-    builder->buildSink<wlog::RollSinkBySize>("./logs/roll.log", 1024 * 1024);
+    builder->enableUnsafeAsync();
+    // builder->buildSink<wlog::RollSinkBySize>("./logs/roll.log", 1024 * 1024);
 
     wlog::SyncLogger::ptr logger = builder->build();
 

@@ -1,4 +1,5 @@
 // 异步日志缓冲
+#pragma once
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -15,10 +16,6 @@ public:
 
     // 向缓冲区写入数据
     void push(const char *data, size_t len) {
-        // 如果空间不足：1.扩容（用于测试）2.直接返回
-        // 直接返回
-        // if (writeableSize() < len) return ;
-        // 扩容：
         expandSize(len);
 
         std::copy(data, data + len, &_buffer[_writer_idx]);
