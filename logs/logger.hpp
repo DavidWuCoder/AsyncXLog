@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstdarg>
 #include <mutex>
+#include <unordered_map>
 
 #include "format.hpp"
 #include "level.hpp"
@@ -23,6 +24,9 @@ public:
           _limit_level(limit_level),
           _formatter(fommatter),
           _sinks(sinks.begin(), sinks.end()) {}
+
+    const std::string &getName() { return _logger_name; }
+
     // 构造消息，格式化，输出
     // 分为五种
     void debug(const std::string file, const size_t line, const std::string fmt,
@@ -252,6 +256,52 @@ public:
         return std::make_shared<SyncLogger>(_logger_name, _limit_level,
                                             _formatter, _sinks);
     }
+};
+
+// 日志器管理类（单例）
+class LoggerManager {
+public:
+    LoggerManager &getInstance() {
+        static LoggerManager eton;
+        return eton;
+    }
+
+    void addLogger(Logger::ptr &logger) {
+        if (hasLogger(logger->getName())) return;
+        std::lock_guard<std::mutex> guard(_mutex);
+        _loggers.insert(std::make_pair(logger->getName(), logger));
+    }
+
+    bool hasLogger(const std::string &logger_name) {
+        auto it = _loggers.find(logger_name);
+        if (it == _loggers.end()) {
+            return false;
+        }
+        return true;
+    }
+
+    Logger::ptr gerLogger(const std::string &logger_name) {
+        auto it = _loggers.find(logger_name);
+        if (it == _loggers.end()) {
+            return Logger::ptr();
+        }
+        return it->second;
+    }
+
+private:
+    LoggerManager() {
+        std::unique_ptr<wlog::LoggerBuilder> builder(
+            new wlog::LocalLoggerBuilder());
+        builder->buildName("_root_logger");
+        _root_logger = builder->build();
+        addLogger(_root_logger);
+    }
+    ~LoggerManager() {}
+
+private:
+    std::mutex _mutex;
+    Logger::ptr _root_logger;  // 默认日志器
+    std::unordered_map<std::string, Logger::ptr> _loggers;
 };
 
 };  // namespace wlog
