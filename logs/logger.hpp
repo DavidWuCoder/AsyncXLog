@@ -239,6 +239,7 @@ protected:
 };
 
 // 2. 派生出具体的建造者类型（局部或全局）
+// 局部
 class LocalLoggerBuilder : public LoggerBuilder {
 public:
     Logger::ptr build() override {
@@ -261,7 +262,7 @@ public:
 // 日志器管理类（单例）
 class LoggerManager {
 public:
-    LoggerManager &getInstance() {
+    static LoggerManager &getInstance() {
         static LoggerManager eton;
         return eton;
     }
@@ -302,6 +303,30 @@ private:
     std::mutex _mutex;
     Logger::ptr _root_logger;  // 默认日志器
     std::unordered_map<std::string, Logger::ptr> _loggers;
+};
+
+// 全局
+class GlobalLoggerBuilder : public LoggerBuilder {
+public:
+    Logger::ptr build() override {
+        assert(!_logger_name.empty());  // 用户一定要设置日志器名称
+        if (_formatter.get() == nullptr) {
+            buildFommatter();
+        }
+        if (_sinks.empty()) {
+            buildSink<StdoutSink>();
+        }
+        Logger::ptr logger;
+        if (_logger_type == LoggerType::ASYNC) {
+            logger = std::make_shared<AsyncLogger>(
+                _logger_name, _limit_level, _formatter, _sinks, _looper_type);
+        } else {
+            logger = std::make_shared<SyncLogger>(_logger_name, _limit_level,
+                                                  _formatter, _sinks);
+        }
+        LoggerManager::getInstance().addLogger(logger);
+        return logger;
+    }
 };
 
 };  // namespace wlog
