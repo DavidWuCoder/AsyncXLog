@@ -274,6 +274,7 @@ public:
     }
 
     bool hasLogger(const std::string &logger_name) {
+        std::lock_guard<std::mutex> guard(_mutex);
         auto it = _loggers.find(logger_name);
         if (it == _loggers.end()) {
             return false;
@@ -282,10 +283,14 @@ public:
     }
 
     Logger::ptr gerLogger(const std::string &logger_name) {
+        // std::cout << "开始查找" << std::endl;
+        std::lock_guard<std::mutex> guard(_mutex);
         auto it = _loggers.find(logger_name);
         if (it == _loggers.end()) {
+            // std::cout << "没找到" << std::endl;
             return Logger::ptr();
         }
+        // std::cout << "找到了" << std::endl;
         return it->second;
     }
 

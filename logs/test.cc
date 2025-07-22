@@ -8,6 +8,25 @@
 #include "sink.hpp"
 #include "util.hpp"
 
+void test_log() {
+    wlog::Logger::ptr logger =
+        wlog::LoggerManager::getInstance().gerLogger("async_logger");
+    const std::string str = "测试日志-";
+    logger->debug(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+    logger->info(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+    logger->warn(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+    logger->error(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+    logger->fatal(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+
+    size_t cur_size = 0;
+    size_t count = 0;
+    while (cur_size < 1024 * 1024 * 10) {
+        std::string tmp = str + " - " + std::to_string(count++);
+        logger->fatal(__FILE__, __LINE__, "%d %s", 1, tmp.c_str());
+        cur_size += 30;
+    }
+}
+
 int main() {
     // std::ifstream ifs;
     // ifs.open("./logfile/test.log", std::ios::binary);
@@ -41,7 +60,7 @@ int main() {
     // ofs.close();
 
     std::unique_ptr<wlog::LoggerBuilder> builder =
-        std::make_unique<wlog::LocalLoggerBuilder>();
+        std::make_unique<wlog::GlobalLoggerBuilder>();
     builder->buildName("async_logger");
     builder->buildLimitLevel(wlog::LogLevel::Value::WARNING);
     builder->buildType(wlog::LoggerType::ASYNC);
@@ -51,22 +70,9 @@ int main() {
     builder->enableUnsafeAsync();
     // builder->buildSink<wlog::RollSinkBySize>("./logs/roll.log", 1024 * 1024);
 
-    wlog::SyncLogger::ptr logger = builder->build();
+    builder->build();
 
-    const std::string str = "测试日志-";
-    logger->debug(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->info(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->warn(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->error(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->fatal(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-
-    size_t cur_size = 0;
-    size_t count = 0;
-    while (cur_size < 1024 * 1024 * 10) {
-        std::string tmp = str + " - " + std::to_string(count++);
-        logger->fatal(__FILE__, __LINE__, "%d %s", 1, tmp.c_str());
-        cur_size += 30;
-    }
+    test_log();
 
     return 0;
 }
