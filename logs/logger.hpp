@@ -170,6 +170,7 @@ protected:
         }
     }
 };
+
 class AsyncLogger : public Logger {
 public:
     AsyncLogger(const std::string &logger_name, LogLevel::Value &limit_level,
