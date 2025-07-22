@@ -1,28 +1,36 @@
-#include <memory>
-#include <string>
-
-#include "buffer.hpp"
-#include "format.hpp"
-#include "level.hpp"
-#include "logger.hpp"
-#include "sink.hpp"
-#include "util.hpp"
+#include "wlog.h"
 
 void test_log() {
     wlog::Logger::ptr logger =
-        wlog::LoggerManager::getInstance().gerLogger("async_logger");
+        wlog::LoggerManager::getInstance().getLogger("async_logger");
     const std::string str = "测试日志-";
-    logger->debug(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->info(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->warn(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->error(__FILE__, __LINE__, "%d %s", 1, str.c_str());
-    logger->fatal(__FILE__, __LINE__, "%d %s", 1, str.c_str());
+    logger->debug("%d %s", 1, str.c_str());
+    logger->info("%d %s", 1, str.c_str());
+    logger->warning("%d %s", 1, str.c_str());
+    logger->error("%d %s", 1, str.c_str());
+    logger->fatal("%d %s", 1, str.c_str());
 
     size_t cur_size = 0;
     size_t count = 0;
     while (cur_size < 1024 * 1024 * 10) {
         std::string tmp = str + " - " + std::to_string(count++);
-        logger->fatal(__FILE__, __LINE__, "%d %s", 1, tmp.c_str());
+        logger->fatal("%d %s", 1, tmp.c_str());
+        cur_size += 30;
+    }
+}
+void test_root_logger() {
+    const std::string str = "测试日志-";
+    DEBUG("%d %s", 1, str.c_str());
+    INFO("%d %s", 1, str.c_str());
+    WARNING("%d %s", 1, str.c_str());
+    ERROR("%d %s", 1, str.c_str());
+    FATAL("%d %s", 1, str.c_str());
+
+    size_t cur_size = 0;
+    size_t count = 0;
+    while (cur_size < 1024 * 1024 * 10) {
+        std::string tmp = str + " - " + std::to_string(count++);
+        FATAL("%d %s", 1, tmp.c_str());
         cur_size += 30;
     }
 }
@@ -59,20 +67,22 @@ int main() {
     // }
     // ofs.close();
 
-    std::unique_ptr<wlog::LoggerBuilder> builder =
-        std::make_unique<wlog::GlobalLoggerBuilder>();
-    builder->buildName("async_logger");
-    builder->buildLimitLevel(wlog::LogLevel::Value::WARNING);
-    builder->buildType(wlog::LoggerType::ASYNC);
-    builder->buildFommatter("[%c][%p]%m%n");
-    builder->buildSink<wlog::StdoutSink>();
-    builder->buildSink<wlog::FileSink>("./logfile/test.log");
-    builder->enableUnsafeAsync();
-    // builder->buildSink<wlog::RollSinkBySize>("./logs/roll.log", 1024 * 1024);
+    // std::unique_ptr<wlog::LoggerBuilder> builder =
+    //     std::make_unique<wlog::GlobalLoggerBuilder>();
+    // builder->buildName("async_logger");
+    // builder->buildLimitLevel(wlog::LogLevel::Value::WARNING);
+    // builder->buildType(wlog::LoggerType::ASYNC);
+    // builder->buildFommatter("[%c][%p][%f:%l]%m%n");
+    // builder->buildSink<wlog::StdoutSink>();
+    // builder->buildSink<wlog::FileSink>("./logfile/test.log");
+    // builder->enableUnsafeAsync();
+    // // builder->buildSink<wlog::RollSinkBySize>("./logs/roll.log", 1024 *
+    // 1024);
+    //
+    // builder->build();
 
-    builder->build();
-
-    test_log();
+    // test_log();
+    test_root_logger();
 
     return 0;
 }

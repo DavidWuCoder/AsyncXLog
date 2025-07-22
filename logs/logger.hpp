@@ -70,7 +70,8 @@ public:
         // 注意需要释放这里的res
         free(res);
     }
-    void warn(const std::string file, size_t line, const std::string fmt, ...) {
+    void warning(const std::string file, size_t line, const std::string fmt,
+                 ...) {
         // 1.检查限制等级
         if (LogLevel::Value::WARNING < _limit_level) {
             return;
@@ -282,7 +283,7 @@ public:
         return true;
     }
 
-    Logger::ptr gerLogger(const std::string &logger_name) {
+    Logger::ptr getLogger(const std::string &logger_name) {
         // std::cout << "开始查找" << std::endl;
         std::lock_guard<std::mutex> guard(_mutex);
         auto it = _loggers.find(logger_name);
@@ -293,6 +294,8 @@ public:
         // std::cout << "找到了" << std::endl;
         return it->second;
     }
+
+    Logger::ptr rootLogger() { return _root_logger; }
 
 private:
     LoggerManager() {
